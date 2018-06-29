@@ -1,13 +1,16 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-#include "serial_parser.h"
+
+#define SERIAL_CMD_BUF_SIZE (120)
+#include "serial_parser/serial_parser.h"
+serial_parser ser_parser;
+
 #include "credentials.h"
 
 #define BUILTIN_LED (2)
 
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
-SerialParser serParser(128);
 
 #include "kitchen_profile.h"
 
@@ -62,8 +65,8 @@ void loop() {
   }
   client.loop();
 
-  if (serParser.processSerial()) {
-    handleSerialCmd();
+  if (ser_parser.process_serial()) {
+    handle_serial_cmd();
   }
 }
 

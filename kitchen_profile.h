@@ -16,17 +16,17 @@ static void handle_mqtt_message(char *topic, char *str, unsigned int length) {
   }
 }
 
-static void handleSerialCmd() {
+static void handle_serial_cmd() {
   char topic[40];
   char payload[16];
   int cmd, l, br;
 
-  cmd = serParser.getNextToken().toInt();
+  cmd = ser_parser.get_next_token_int();
   if (cmd == 0) {
-    l = serParser.getNextToken().toInt();
+    l = ser_parser.get_next_token_int();
     if (l < 0 || 15 < l) {client.publish("dbg", "err: serial - light");return;}
 
-    br = serParser.getNextToken().toInt();
+    br = ser_parser.get_next_token_int();
     if (br < 0 || 100 < br) {client.publish("dbg", "err: serial - brightness");return;}
 
     snprintf(topic, sizeof(topic), TOPIC_PREFIX "/light/%d/update", l);
