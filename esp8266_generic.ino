@@ -12,7 +12,7 @@ serial_parser ser_parser;
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
 
-#include "kitchen_profile.h"
+#include "profile_kitchen.h"
 
 void setup_wifi() {
   WiFi.begin(ssid, password);
