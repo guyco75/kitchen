@@ -2,8 +2,8 @@
 #include <PubSubClient.h>
 
 #define SERIAL_CMD_BUF_SIZE (120)
+#define SERIAL_OUT_BUF_SIZE (80)
 #include "serial_parser/serial_parser.h"
-serial_parser ser_parser;
 
 #include "credentials.h"  // ssid, password, mqtt_server
 

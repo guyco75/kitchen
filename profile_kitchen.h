@@ -8,12 +8,9 @@ static void subscribe() {
 }
 
 static void handle_mqtt_message(char *topic, char *str) {
-  char serial_str[40];
-
   if (!strcmp(TOPIC_PREFIX "/light/set/0", topic)) {
-    snprintf(serial_str, sizeof(serial_str), "$0,0,%s,#", str);
-    Serial.print(serial_str);
-    client.publish("dbg" TOPIC_PREFIX, serial_str);
+    serial_out("$0,0,%s,#", str);
+    client.publish("dbg" TOPIC_PREFIX, serial_out_buf);
   }
 }
 
@@ -24,15 +21,13 @@ static void poll_device_state() {
 static void handle_serial_cmd() {
   char topic[40];
   char payload[16];
-  int cmd, l, br;
+  int32_t cmd, l, br;
 
-  cmd = ser_parser.get_next_token_int();
+  if (!ser_parser.get_next_token_int(&cmd)) {client.publish("dbg" TOPIC_PREFIX, "err: serial - cmd");return;}
   if (cmd == 0) {
-    l = ser_parser.get_next_token_int();
-    if (l < 0 || 15 < l) {client.publish("dbg", "err: serial - light");return;}
+    if (!ser_parser.get_next_token_int(&l) || l < 0 || 15 < l) {client.publish("dbg", "err: serial - light");return;}
 
-    br = ser_parser.get_next_token_int();
-    if (br < 0 || 100 < br) {client.publish("dbg", "err: serial - brightness");return;}
+    if (!ser_parser.get_next_token_int(&br) || br < 0 || 100 < br) {client.publish("dbg", "err: serial - brightness");return;}
 
     snprintf(topic, sizeof(topic), TOPIC_PREFIX "/light/update/%d", l);
     snprintf(payload, sizeof(payload), "%d", br);

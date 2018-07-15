@@ -2,8 +2,6 @@
 #define TOPIC_PREFIX "home/f1/livingroom/balcony"
 #define SERIAL_SPEED (57600)
 
-char str_buff[120];
-
 static void subscribe() {
   client.subscribe(TOPIC_PREFIX "/#");
   client.subscribe(TOPIC_BCAST);
@@ -15,9 +13,8 @@ static void handle_mqtt_message(char *topic, char *str) {
 
   ret = sscanf(topic, TOPIC_PREFIX "/rs/%d/set", &id);
   if (ret == 1) {
-    snprintf(str_buff, sizeof(str_buff), "$rs,%d,%s#", id, str);
-    Serial.print(str_buff);
-    client.publish("dbg" TOPIC_PREFIX, str_buff);
+    serial_out("$rs,%d,%s#", id, str);
+    client.publish("dbg" TOPIC_PREFIX, serial_out_buf);
   }
 }
 
@@ -28,11 +25,12 @@ static void poll_device_state() {
 }
 
 static void handle_serial_cmd() {
+  static char payload[40];
   int cmd, l, br;
 
-  if (strlen(ser_parser.rx_cmd_str) < sizeof(str_buff)) {
-    snprintf(str_buff, sizeof(str_buff), "%s", ser_parser.rx_cmd_str);
-    client.publish(TOPIC_PREFIX "/status_update", str_buff);
+  if (strlen(ser_parser.rx_cmd_str) < sizeof(payload)) {
+    snprintf(payload, sizeof(payload), "%s", ser_parser.rx_cmd_str);
+    client.publish(TOPIC_PREFIX "/status_update", payload);
   } else {
     client.publish("dbg" TOPIC_PREFIX, "error: serial update len");
   }
