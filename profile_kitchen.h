@@ -3,17 +3,22 @@
 #define SERIAL_SPEED (57600)
 
 static void subscribe() {
-  client.subscribe(TOPIC_PREFIX "/light/+/set");
+  client.subscribe(TOPIC_PREFIX "/#");
+  client.subscribe(TOPIC_BCAST);
 }
 
-static void handle_mqtt_message(char *topic, char *str, unsigned int length) {
+static void handle_mqtt_message(char *topic, char *str) {
   char serial_str[40];
 
-  if (!strcmp(TOPIC_PREFIX "/light/0/set", topic)) {
-    snprintf(serial_str, sizeof(serial_str), "$0,%s,#", str);
+  if (!strcmp(TOPIC_PREFIX "/light/set/0", topic)) {
+    snprintf(serial_str, sizeof(serial_str), "$0,0,%s,#", str);
     Serial.print(serial_str);
     client.publish("dbg" TOPIC_PREFIX, serial_str);
   }
+}
+
+static void poll_device_state() {
+  //place holder
 }
 
 static void handle_serial_cmd() {
@@ -29,7 +34,7 @@ static void handle_serial_cmd() {
     br = ser_parser.get_next_token_int();
     if (br < 0 || 100 < br) {client.publish("dbg", "err: serial - brightness");return;}
 
-    snprintf(topic, sizeof(topic), TOPIC_PREFIX "/light/%d/update", l);
+    snprintf(topic, sizeof(topic), TOPIC_PREFIX "/light/update/%d", l);
     snprintf(payload, sizeof(payload), "%d", br);
     client.publish(topic, payload);
   }

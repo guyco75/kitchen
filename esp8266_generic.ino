@@ -5,14 +5,15 @@
 #include "serial_parser/serial_parser.h"
 serial_parser ser_parser;
 
-#include "credentials.h"
+#include "credentials.h"  // ssid, password, mqtt_server
 
-#define BUILTIN_LED (2)
+#define TOPIC_BCAST "home/bcast"
 
 WiFiClient espClient;
 PubSubClient client(mqtt_server, 1883, espClient);
 
 #include "profile_kitchen.h"
+//#include "profile_livingroom_balcony.h"
 
 void setup_wifi() {
   WiFi.begin(ssid, password);
@@ -34,7 +35,12 @@ void callback(char *topic, byte *payload, unsigned int length) {
   memcpy(str, payload, length);
   str[length] = '\0';
 
-  handle_mqtt_message(topic, str, length);
+  if (!strcmp(TOPIC_BCAST, topic)) {
+    if (!strcmp("status_req", str))
+      poll_device_state();
+  } else {
+    handle_mqtt_message(topic, str);
+  }
 }
 
 void reconnect() {
@@ -53,7 +59,6 @@ void reconnect() {
 }
 
 void setup() {
-  pinMode(BUILTIN_LED, OUTPUT);
   Serial.begin(SERIAL_SPEED);
   setup_wifi(); // TODO: Anything to do in reconnect?
   client.setCallback(callback);
@@ -62,6 +67,7 @@ void setup() {
 void loop() {
   if (!client.connected()) {
     reconnect();
+    poll_device_state();
   }
   client.loop();
 
